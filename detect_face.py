@@ -120,7 +120,8 @@ if __name__ == '__main__':
 #     train() 
   
     isCapture = True
-    isRecognize = False
+    isRestart = False
+    isSlowmode = False
     cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
     cap=cv2.VideoCapture(0)
     success,frame=cap.read()
@@ -131,10 +132,13 @@ if __name__ == '__main__':
         # capture frame-by-frame
         success,frame=cap.read()
         if isCapture:
+            if isRestart:
+                face_list = []
+                isRestart = False
+            if isSlowmode:
+                face_list = []
+
             size=frame.shape[:2]
-            #pdb.set_trace()
-#             original_image = os.path.join(HERE, 'original_image', '1.jpg')
-#             cv2.imwrite(original_image, frame)
             image=np.zeros(size,dtype=np.float16)
             # operation on the frame come here
             image=cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -199,7 +203,9 @@ if __name__ == '__main__':
             isCapture = False
         if c in ['a', 'A']:
             isCapture = True
-        if c in ['r']:
-            isRecognize = True
+        if c in ['r', 'R']:
+            isRestart = True
+        if c in ['s', 'S']:
+            isSlowmode = True
     
     cv2.destroyWindow("test")

@@ -78,19 +78,21 @@ def get_index_len(face_list, index):
     
     return len
 
-def delete_group():
+def delete_group(is_delete_person):
     group_name = 'friend'
 
     rst = api.group.get_info(group_name = 'friend')
     api.group.delete(group_name = 'friend')
     
-    for idx in range(len(rst['person'])):
-        person_name = rst['person'][idx]['person_name']
-        api.person.delete(person_name = person_name)
+    if is_delete_person:
+        for idx in range(len(rst['person'])):
+            person_name = rst['person'][idx]['person_name']
+            api.person.delete(person_name = person_name)
 
 def train():    
     group_path = os.path.join(HERE, 'group')
     rst = api.group.create(group_name = 'friend')
+    added_person = []
     for directory in os.listdir(group_path):
         # create a new group and add those persons in it
         
@@ -107,17 +109,28 @@ def train():
                     first_person = False
                 rst = api.group.add_person(group_name = 'friend', person_name = directory)
                 
-        # train the model
-        rst = api.train.identify(group_name = 'friend')
-        # wait for training to complete
-        rst = api.wait_async(rst['session_id'])
-                
+        added_person.append(directory)
+    
+    person_list = api.info.get_person_list()
+    person_in_app = person_list['person']
+    for person in person_in_app:
+        if person['person_name'] not in added_person:
+            api.group.add_person(group_name = 'friend', person_name=person['person_name']) 
+            
+    # train the model
+    rst = api.train.identify(group_name = 'friend')
+    # wait for training to complete
+    rst = api.wait_async(rst['session_id'])
+        
+                    
 if __name__ == '__main__':
 
     api = API(API_KEY, API_SECRET)
     
-#     delete_group()
-#     train() 
+    is_delete_person = True
+    
+    delete_group(is_delete_person)
+    train() 
   
     isCapture = True
     isRestart = False
@@ -128,6 +141,7 @@ if __name__ == '__main__':
 
     i = 0
     face_list = []
+    
     while success:
         # capture frame-by-frame
         success,frame=cap.read()
@@ -137,7 +151,6 @@ if __name__ == '__main__':
                 isRestart = False
             if isSlowmode:
                 face_list = []
-
             size=frame.shape[:2]
             image=np.zeros(size,dtype=np.float16)
             # operation on the frame come here
@@ -209,3 +222,4 @@ if __name__ == '__main__':
             isSlowmode = True
     
     cv2.destroyWindow("test")
+

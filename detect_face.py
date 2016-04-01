@@ -78,20 +78,8 @@ def get_index_len(face_list, index):
     
     return len
 
-def delete_group(is_delete_person):
-    group_name = 'friend'
-
-    rst = api.group.get_info(group_name = 'friend')
-    api.group.delete(group_name = 'friend')
-    
-    if is_delete_person:
-        for idx in range(len(rst['person'])):
-            person_name = rst['person'][idx]['person_name']
-            api.person.delete(person_name = person_name)
-
-def train():    
+def add_person_to_group(group_name):    
     group_path = os.path.join(HERE, 'group')
-    rst = api.group.create(group_name = 'friend')
     added_person = []
     for directory in os.listdir(group_path):
         # create a new group and add those persons in it
@@ -107,18 +95,16 @@ def train():
                                             face_id = result['face'][0]['face_id']
                                             )
                     first_person = False
-                rst = api.group.add_person(group_name = 'friend', person_name = directory)
+                rst = api.group.add_person(group_name = group_name, person_name = directory)
                 
         added_person.append(directory)
-    
-    person_list = api.info.get_person_list()
-    person_in_app = person_list['person']
-    for person in person_in_app:
-        if person['person_name'] not in added_person:
-            api.group.add_person(group_name = 'friend', person_name=person['person_name']) 
+
+def create_group(group_name):
+    api.group.create(group_name = group_name)
             
+def train(group_name):
     # train the model
-    rst = api.train.identify(group_name = 'friend')
+    rst = api.train.identify(group_name = group_name)
     # wait for training to complete
     rst = api.wait_async(rst['session_id'])
         
@@ -127,9 +113,9 @@ if __name__ == '__main__':
 
     api = API(API_KEY, API_SECRET)
     
-    is_delete_person = True
-    
-    delete_group(is_delete_person)
+    group_name = 'friend' 
+    create_group(group_name)
+    add_person_to_group(group_name)
     train() 
   
     isCapture = True

@@ -78,7 +78,7 @@ def get_index_len(face_list, index):
     
     return len
 
-def add_person_to_group(group_name):    
+def add_person_to_group(group_name, is_person_exists = False):    
     group_path = os.path.join(HERE, 'group')
     added_person = []
     for directory in os.listdir(group_path):
@@ -90,14 +90,18 @@ def add_person_to_group(group_name):
             result = api.detection.detect(img=File(img_name), post=True)
             if result['face']:
                 if first_person:
+                    if not is_person_exists:
                     # create person using the face_id
-                    rst = api.person.create(person_name = directory,
-                                            face_id = result['face'][0]['face_id']
-                                            )
+                        rst = api.person.create(person_name = directory,
+                                                face_id = result['face'][0]['face_id']
+                                                )
                     first_person = False
                 rst = api.group.add_person(group_name = group_name, person_name = directory)
                 
         added_person.append(directory)
+
+def group_remove_person(group_name, person_name):
+    api.group.remove_person(group_name = group_name, person_name = person_name)
 
 def create_group(group_name):
     api.group.create(group_name = group_name)
@@ -113,11 +117,12 @@ if __name__ == '__main__':
 
     api = API(API_KEY, API_SECRET)
     
-    group_name = 'friend' 
-    create_group(group_name)
-    add_person_to_group(group_name)
-    train() 
-  
+    group_name = 'friend'
+#     group_remove_person(group_name = 'friend', person_name="FengXi")
+#     create_group(group_name)
+#     add_person_to_group(group_name, is_person_exists=False)
+    train(group_name)
+
     isCapture = True
     isRestart = False
     isSlowmode = False
@@ -208,4 +213,3 @@ if __name__ == '__main__':
             isSlowmode = True
     
     cv2.destroyWindow("test")
-

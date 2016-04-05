@@ -42,8 +42,8 @@ def encode(obj):
 
 def drawText(frame, person_name, person_title, x, y):
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(frame, person_name, (x-10, y-10), font, 0.5, (255,0,0))
-    cv2.putText(frame, person_title, (x+80, y-10), font, 0.5, (0,0,255))
+    cv2.putText(frame, person_name, (x, y-30), font, 0.5, (255,0,0))
+    cv2.putText(frame, person_title, (x, y-10), font, 0.5, (0,0,255))
 
 
 def get_max_possibilities_person_name(face_list, index):
@@ -118,14 +118,22 @@ if __name__ == '__main__':
     api = API(API_KEY, API_SECRET)
     
     group_name = 'friend'
-#     group_remove_person(group_name = 'friend', person_name="FengXi")
-#     create_group(group_name)
-#     add_person_to_group(group_name, is_person_exists=False)
-    train(group_name)
+    
+    isFirst = 1
+    if isFirst == 1:
+        # This is for you want to remove preson from one group, becase you want to add the person again
+        group_remove_person(group_name = 'friend', person_name="FengXi")
+        add_person_to_group(group_name, is_person_exists=True)
+        train(group_name)
+    elif isFirst == 2:
+        # This is for the person that hasn't been added to the train data
+        add_person_to_group(group_name)
+        train(group_name)
 
     isCapture = True
     isRestart = False
     isSlowmode = False
+    isDrawText = False
     cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
     cap=cv2.VideoCapture(0)
     success,frame=cap.read()
@@ -172,12 +180,14 @@ if __name__ == '__main__':
                     
                     if get_index_len(face_list, index) > 10:
                         person_name = get_max_possibilities_person_name(face_list, index)
-                        logger.info("person_name=%s" %person_name)
+                        #logger.info("person_name=%s" %person_name)q
                         person_title = PERSON_INFO[person_name]
-                        drawText(frame, person_name, person_title, x, y)
+                        if isDrawText:
+                            drawText(frame, person_name, person_title, x, y)
                         cv2.rectangle(frame, (x,y), (x+w, y+h), (255,0,0), 3)
                     else:
-                        rst = api.recognition.identify(group_name = 'friend', img = File(face_name))
+                        rst = api.recognition.identify(group_name = 'friend', img = File(face_name), async=False)
+                        
                         if rst['face']:
                             person_name = rst['face'][0]['candidate'][0]['person_name']
                             previous_person[index] = person_name
@@ -185,15 +195,11 @@ if __name__ == '__main__':
                             if get_index_len(face_list, index) <= 10: 
                                 face_list.append(face_info)                    
                             person_title = PERSON_INFO[person_name]
-                            logger.info("face_info=%s" %face_info)
-                            logger.info("face_list=%s" %face_list)
-                            recognized_folder = os.path.join(HERE, 'recognized_face', str(index))
-                            if not os.path.exists(recognized_folder):
-                                os.mkdir(recognized_folder)
-                            recognized_face = os.path.join(recognized_folder, str(i)+'_.jpg')
-                            cv2.imwrite(recognized_face, roi)
-    
-                            drawText(frame, person_name, person_title, x, y)                   
+#                            logger.info("face_info=%s" %face_info)
+#                            logger.info("face_list=%s" %face_list)
+                            
+                            if isDrawText:
+                                drawText(frame, person_name, person_title, x, y)                   
                         cv2.rectangle(frame, (x,y), (x+w, y+h), (255,0,0), 3)    
                                     
             i += 1    
@@ -211,5 +217,6 @@ if __name__ == '__main__':
             isRestart = True
         if c in ['s', 'S']:
             isSlowmode = True
-    
+        if c in ['d', 'D']:
+            isDrawText = True
     cv2.destroyWindow("test")

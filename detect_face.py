@@ -17,16 +17,6 @@ logger.addHandler(fh)
 logger.setLevel(logging.NOTSET)
 logger.info('face detection')
 
-ALIGN_POINTS = list(range(0,25))
-OVERLAY_POINTS=list(range(0,25))
-
-RIGHT_EYE_POINTS = list(range(2, 6))
-LEFT_EYE_POINTS = list(range(4, 8))
-
-FEATHER_AMOUNT = 11
-SCALE_FACTOR = 1
-COLOUR_CORRECT_BLUR_FRAC = 0.6
-
 HERE = os.path.dirname(__file__)
 
 classifier=cv2.CascadeClassifier(r"..\haarcascades\haarcascade_frontalface_alt.xml")
